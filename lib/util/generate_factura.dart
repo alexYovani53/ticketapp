@@ -5,12 +5,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:open_filex/open_filex.dart';
+import 'package:media_store_plus/media_store_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:ticketapp/main.dart';
 import 'package:ticketapp/models/Persona.dart';
+import 'package:ticketapp/util/dialogflush.dart';
 
 class GenerateFactura {
   GenerateFactura._privateConstructor();
@@ -161,49 +163,30 @@ class GenerateFactura {
         ),
       );
 
-      final output = await getExternalStorageDirectory();
-      final output2 = await getApplicationDocumentsDirectory();
-      final output3 = await getExternalStorageDirectories(type: StorageDirectory.documents);
+      final output = await getApplicationSupportDirectory();
+      final directorio = "${output.path}/${name()}.pdf";
 
-      final listaStrings = output!.path.split("/");
-      String directorioFinal = "";
-
-      for (var element in listaStrings) {
-        if (element != 'Android') {
-          directorioFinal += element + '/';
-        } else {
-          break;
-        }
-      }
-
-      final directorio = "${directorioFinal}FACTURA_NUEVA.pdf";
-      final directorio2 = "${output2.path}/FACTURA_NUEVA2.pdf";
-      final directorio3 = "${output3!.elementAt(0).path}/FACTURA_NUEVA3.pdf";
-
-      final directory1 = io.Directory(directorioFinal);
-      final directory2 = io.Directory(output2.path);
-      final directory3 = io.Directory(output3.elementAt(0).path);
+      final directory1 = io.Directory(output.path);
 
       if (!await directory1.exists()) await directory1.create(recursive: true);
-
-      if (!await directory2.exists()) await directory3.create(recursive: true);
-
-      if (!await directory3.exists()) await directory3.create(recursive: true);
-
-      if (!(await Permission.storage.isGranted)) openAppSettings();
-
+      if (!(await Permission.storage.request()).isGranted) return 0;
       final file = io.File(directorio);
-      final file2 = io.File(directorio2);
-      final file3 = io.File(directorio3);
       await file.writeAsBytes(await pdf.save());
-      await file2.writeAsBytes(await pdf.save());
-      await file3.writeAsBytes(await pdf.save());
 
-      OpenFilex.open(directorio).then((value) {
-        if (value.type != ResultType.done) OpenFilex.open(directorio2);
-      });
+      await mediaStorePlugin.saveFile(
+        tempFilePath: file.path,
+        dirType: DirType.download,
+        dirName: DirName.download,
+        relativePath: "Facturas",
+      );
+
       return 1;
     } catch (e) {
+      showFlushBar(
+        "Error",
+        e.toString(),
+        context,
+      );
       return 0;
     }
   }
@@ -225,5 +208,11 @@ class GenerateFactura {
       lista.add(pw.Text(element, textScaleFactor: scalFactor, style: pw.TextStyle(font: ttf, lineSpacing: 2)));
     }
     return lista;
+  }
+
+  String name() {
+    final format = DateFormat("dd-MM-yyyy__HH-mm");
+    final date = format.format(DateTime.now());
+    return date;
   }
 }
