@@ -52,7 +52,7 @@ class GenerateFactura {
   }
 
   bool get estado {
-    return persona != null && cobro != null && mesesEstado != null || monto != null;
+    return persona != null && cobro != null && mesesEstado != null && monto != null;
   }
 
   String generateRandomString(int len) {
@@ -168,15 +168,22 @@ class GenerateFactura {
 
       final directory1 = io.Directory(output.path);
 
+      final version = await mediaStorePlugin.getPlatformSDKInt();
+      if (version == 33) {
+        if (!(await Permission.manageExternalStorage.request()).isGranted) return 0;
+      } else {
+        if (!(await Permission.storage.request()).isGranted) return 0;
+      }
+
       if (!await directory1.exists()) await directory1.create(recursive: true);
-      if (!(await Permission.storage.request()).isGranted) return 0;
+
       final file = io.File(directorio);
       await file.writeAsBytes(await pdf.save());
 
       await mediaStorePlugin.saveFile(
         tempFilePath: file.path,
         dirType: DirType.download,
-        dirName: DirName.download,
+        dirName: DirType.download.defaults,
         relativePath: "Facturas",
       );
 
@@ -211,7 +218,7 @@ class GenerateFactura {
   }
 
   String name() {
-    final format = DateFormat("dd-MM-yyyy__HH-mm");
+    final format = DateFormat("dd-MM-yyyy__HH-mm-ss");
     final date = format.format(DateTime.now());
     return date;
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:media_store_plus/media_store_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:ticketapp/models/Persona.dart';
 import 'package:ticketapp/pages/facturacion/meses.dart';
@@ -247,7 +246,6 @@ class _FacturacionState extends State<Facturacion> {
   }
 
   void enviarFactura(BuildContext context) async {
-
     final cobro = checked[0]
         ? "Cable"
         : checked[1]
@@ -259,12 +257,12 @@ class _FacturacionState extends State<Facturacion> {
     GenerateFactura.shared.setMeses = provider.checkedMes;
 
     if (!GenerateFactura.shared.estado) {
-      showFlushBar("Datos vacios", "Seleccione un cobro y un cliente!", context);
+      showFlushBar("Error", "Formulario incompleto!", context);
       return;
     }
     GenerateFactura.shared.generarPdf(context).then((value) {
       if (value != 1) {
-        showFlushBar("Guardar archivo", "FALLO AL GUARDAR ARCHIVO", context, );
+        showFlushBar("Guardar archivo", "Ocurrio un error al guardar el archivo", context);
         return;
       }
       provider.actualizarMonto(double.tryParse(controllerMonto.text));

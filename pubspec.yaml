@@ -33,7 +33,6 @@ dependencies:
     sdk: flutter
   intl: ^0.17.0
   media_store_plus: ^0.0.6
-  open_filex: ^4.3.2
   path_provider: ^2.0.9
   pdf: ^3.8.1
   percent_indicator: ^4.0.1
